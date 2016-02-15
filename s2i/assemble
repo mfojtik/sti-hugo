@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/sh -e
 
 echo "-> Copying sources ..."
 cp -Rf /tmp/src/. ./
+
+# Check if hugo can compile your site
+hugo --baseURL=${HUGO_BASE_URL:-http://mifo.sk} --theme ${HUGO_THEME:-slim} \
+     --renderToMemory -v && rm -rf public

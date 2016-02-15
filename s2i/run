@@ -1,13 +1,24 @@
 #!/bin/sh
 
-exec hugo server \
-  --baseURL=${HUGO_BASE_URL:-http://mifo.sk} \
+pipe=/tmp/log
+hugo_pid=""
+
+# Cleanup..
+trap "rm -f $pipe" EXIT
+
+# Setup logging to stdout
+[[ ! -p $pipe ]] && mkfifo $pipe
+while true; do read line <$pipe && echo $line; done &
+
+# Start hugo server
+hugo server --baseURL=${HUGO_BASE_URL:-http://mifo.sk} \
   --theme ${HUGO_THEME:-slim} \
   --bind=0.0.0.0 \
   --port=8080 \
   --disableLiveReload=true \
   --watch=false \
   --appendPort=false \
-  --verbose \
-  --log
-
+  --verboseLog \
+  --logFile=$pipe &
+trap "kill $!" EXIT
+wait $hugo_pid
